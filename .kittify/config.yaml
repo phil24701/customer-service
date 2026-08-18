@@ -1,0 +1,12 @@
+project:
+  uuid: 2b543bf7-4faf-4862-8333-b3aec12c865b
+  slug: customer-service
+  node_id: 1857edf3e86c
+  build_id: 4d393e36-ba71-5327-8599-631956965d8d
+vcs:
+  type: git
+agents:
+  available:
+  - copilot
+  auto_commit: true
+  lint_on_edit: false
