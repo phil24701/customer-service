@@ -1,0 +1,15 @@
+{
+  "coordination_branch": "kitty/mission-customer-support-platform-mvp-01M0DPMQ",
+  "created_at": "2026-08-19T19:05:51.121915+00:00",
+  "flattened": false,
+  "friendly_name": "Customer Support Platform MVP",
+  "mission_id": "01M0DPMQRGYVXD960W4S34P2NH",
+  "mission_number": null,
+  "mission_slug": "customer-support-platform-mvp-01M0DPMQ",
+  "mission_type": "software-dev",
+  "purpose_context": "This mission implements the complete MVP for a Customer Support Platform as defined in the project documents. It includes customer case submission and tracking, agent case management with collision prevention and macros, supervisor queue monitoring with SLA risk visibility, administrator configuration of queues/categories/statuses/priorities/SLA rules, email-to-case ingestion, real-time case/queue updates, audit logging, and bulk operations. The platform demonstrates senior-level full-stack engineering with React/TypeScript frontend, Node.js/TypeScript backend, PostgreSQL, and modern development practices.",
+  "purpose_tldr": "Build a production-style customer support case management platform with full case lifecycle, email ingestion, routing, SLA management, real-time collaboration, and role-based administration.",
+  "slug": "customer-support-platform-mvp-01M0DPMQ",
+  "target_branch": "epic1",
+  "topology": "coord"
+}
