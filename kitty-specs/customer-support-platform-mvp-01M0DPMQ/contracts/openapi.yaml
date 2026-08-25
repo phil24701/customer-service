@@ -1,0 +1,2602 @@
+openapi: 3.0.3
+info:
+  title: Customer Support Platform API
+  version: 1.0.0
+  description: REST API for the Customer Support Platform MVP
+  contact:
+    name: Platform Team
+    email: platform@example.com
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://api.example.com/v1
+    description: Production server
+security:
+  - BearerAuth: []
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Users
+    description: User management (admin)
+  - name: Customers
+    description: Customer management
+  - name: Cases
+    description: Case lifecycle management
+  - name: Communications
+    description: Case messages and internal notes
+  - name: Attachments
+    description: File attachment handling
+  - name: Queues
+    description: Queue views and management
+  - name: Search
+    description: Full-text search and filtering
+  - name: SLA
+    description: SLA configuration and monitoring
+  - name: Reports
+    description: Dashboards and reporting
+  - name: Admin
+    description: Administrative configuration
+  - name: Audit
+    description: Audit log access
+  - name: Webhooks
+    description: External integrations (email, etc.)
+  - name: Real-time
+    description: Server-Sent Events for live updates
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ===== Common =====
+    Error:
+      type: object
+      required: [error, message, statusCode]
+      properties:
+        error:
+          type: string
+          example: "Unauthorized"
+        message:
+          type: string
+          example: "Invalid or expired token"
+        statusCode:
+          type: integer
+          example: 401
+        details:
+          type: object
+          nullable: true
+
+    PaginationParams:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        sort:
+          type: string
+          example: "created_at:desc"
+        search:
+          type: string
+
+    PaginatedResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: {}
+        pagination:
+          type: object
+          required: [page, limit, total, totalPages]
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+
+    # ===== Auth =====
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        rememberMe:
+          type: boolean
+          default: false
+
+    LoginResponse:
+      type: object
+      required: [accessToken, refreshToken, user]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    RefreshTokenResponse:
+      type: object
+      required: [accessToken, refreshToken]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    User:
+      type: object
+      required: [id, email, fullName, roles, isActive, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        timezone:
+          type: string
+        locale:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [customer, agent, supervisor, admin]
+        isActive:
+          type: boolean
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ===== Customers =====
+    Customer:
+      type: object
+      required: [id, email, fullName, isActive, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        organizationId:
+          type: string
+          format: uuid
+          nullable: true
+        organization:
+          $ref: '#/components/schemas/Organization'
+        externalId:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        caseCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CustomerCreateRequest:
+      type: object
+      required: [email, fullName]
+      properties:
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+          maxLength: 255
+        phone:
+          type: string
+          maxLength: 50
+        organizationId:
+          type: string
+          format: uuid
+        externalId:
+          type: string
+          maxLength: 100
+
+    CustomerUpdateRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          maxLength: 255
+        phone:
+          type: string
+          maxLength: 50
+        organizationId:
+          type: string
+          format: uuid
+          nullable: true
+        externalId:
+          type: string
+          maxLength: 100
+        isActive:
+          type: boolean
+
+    Organization:
+      type: object
+      required: [id, name, isActive, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        domain:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ===== Cases =====
+    Case:
+      type: object
+      required: [id, caseNumber, subject, status, priority, queue, customer, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        caseNumber:
+          type: string
+        subject:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/Status'
+        priority:
+          $ref: '#/components/schemas/Priority'
+        category:
+          $ref: '#/components/schemas/Category'
+          nullable: true
+        queue:
+          $ref: '#/components/schemas/Queue'
+        assignedAgent:
+          $ref: '#/components/schemas/User'
+          nullable: true
+        internalOwner:
+          $ref: '#/components/schemas/User'
+          nullable: true
+        internalDepartment:
+          type: string
+          nullable: true
+        customer:
+          $ref: '#/components/schemas/Customer'
+        organization:
+          $ref: '#/components/schemas/Organization'
+          nullable: true
+        rootCause:
+          type: string
+          nullable: true
+        finalPriority:
+          $ref: '#/components/schemas/Priority'
+          nullable: true
+        source:
+          type: string
+          enum: [portal, email, api]
+        slaTargetResponseAt:
+          type: string
+          format: date-time
+          nullable: true
+        slaTargetResolutionAt:
+          type: string
+          format: date-time
+          nullable: true
+        slaIsPaused:
+          type: boolean
+        slaPausedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdBy:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+          nullable: true
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    CaseCreateRequest:
+      type: object
+      required: [subject, description, customerId]
+      properties:
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 500
+        description:
+          type: string
+          minLength: 1
+          maxLength: 10000
+        customerId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+          nullable: true
+        priorityId:
+          type: string
+          format: uuid
+          nullable: true
+        queueId:
+          type: string
+          format: uuid
+          nullable: true
+        attachments:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    CaseUpdateRequest:
+      type: object
+      properties:
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 500
+        description:
+          type: string
+          minLength: 1
+          maxLength: 10000
+        statusId:
+          type: string
+          format: uuid
+        priorityId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+          nullable: true
+        queueId:
+          type: string
+          format: uuid
+        assignedAgentId:
+          type: string
+          format: uuid
+          nullable: true
+        internalOwnerId:
+          type: string
+          format: uuid
+          nullable: true
+        internalDepartment:
+          type: string
+          maxLength: 100
+          nullable: true
+        rootCause:
+          type: string
+          maxLength: 100
+          nullable: true
+        finalPriorityId:
+          type: string
+          format: uuid
+          nullable: true
+
+    CaseBulkActionRequest:
+      type: object
+      required: [caseIds, action]
+      properties:
+        caseIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          maxItems: 100
+        action:
+          type: string
+          enum: [assign, status_change, priority_change, category_change, queue_change]
+        assigneeId:
+          type: string
+          format: uuid
+        statusId:
+          type: string
+          format: uuid
+        priorityId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        queueId:
+          type: string
+          format: uuid
+
+    Status:
+      type: object
+      required: [id, name, label, color, isSystem, isClosed, pausesSla, requiresRootCause, sortOrder]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        label:
+          type: string
+        color:
+          type: string
+        isSystem:
+          type: boolean
+        isClosed:
+          type: boolean
+        pausesSla:
+          type: boolean
+        requiresRootCause:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    Priority:
+      type: object
+      required: [id, name, label, color, sortOrder]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        label:
+          type: string
+        color:
+          type: string
+        sortOrder:
+          type: integer
+
+    Category:
+      type: object
+      required: [id, name, slug, color, isActive, sortOrder]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+          nullable: true
+        color:
+          type: string
+        isActive:
+          type: boolean
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        sortOrder:
+          type: integer
+
+    Queue:
+      type: object
+      required: [id, name, slug, isCatchAll, isActive]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+          nullable: true
+        isCatchAll:
+          type: boolean
+        isActive:
+          type: boolean
+        slaRuleId:
+          type: string
+          format: uuid
+          nullable: true
+        autoAssign:
+          type: boolean
+        caseCount:
+          type: integer
+
+    # ===== Communications =====
+    Communication:
+      type: object
+      required: [id, caseId, authorId, body, isInternal, communicationType, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        caseId:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        author:
+          $ref: '#/components/schemas/User'
+        body:
+          type: string
+        isInternal:
+          type: boolean
+        communicationType:
+          type: string
+          enum: [reply, note, system, macro]
+        macroId:
+          type: string
+          format: uuid
+          nullable: true
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        editedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    CommunicationCreateRequest:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+          minLength: 1
+        isInternal:
+          type: boolean
+          default: false
+        macroId:
+          type: string
+          format: uuid
+          nullable: true
+        attachmentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    Macro:
+      type: object
+      required: [id, name, bodyTemplate, isInternal, isActive]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        bodyTemplate:
+          type: string
+        isInternal:
+          type: boolean
+        setStatusId:
+          type: string
+          format: uuid
+          nullable: true
+        setPriorityId:
+          type: string
+          format: uuid
+          nullable: true
+        setCategoryId:
+          type: string
+          format: uuid
+          nullable: true
+        setQueueId:
+          type: string
+          format: uuid
+          nullable: true
+        setAssignedAgentId:
+          type: string
+          format: uuid
+          nullable: true
+        shortcutKey:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+
+    MacroCreateRequest:
+      type: object
+      required: [name, bodyTemplate]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        bodyTemplate:
+          type: string
+        isInternal:
+          type: boolean
+          default: false
+        setStatusId:
+          type: string
+          format: uuid
+        setPriorityId:
+          type: string
+          format: uuid
+        setCategoryId:
+          type: string
+          format: uuid
+        setQueueId:
+          type: string
+          format: uuid
+        setAssignedAgentId:
+          type: string
+          format: uuid
+        shortcutKey:
+          type: string
+          maxLength: 20
+
+    # ===== Attachments =====
+    Attachment:
+      type: object
+      required: [id, filename, contentType, sizeBytes, uploadedById, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        contentType:
+          type: string
+        sizeBytes:
+          type: integer
+        uploadedBy:
+          $ref: '#/components/schemas/User'
+        virusScanned:
+          type: boolean
+        virusScanResult:
+          type: string
+          enum: [clean, infected, error]
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    AttachmentUploadResponse:
+      type: object
+      required: [id, uploadUrl, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        uploadUrl:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+
+    # ===== Search & Filters =====
+    CaseFilterRequest:
+      type: object
+      properties:
+        statusIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        priorityIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        categoryIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        queueIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        assignedAgentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        internalOwnerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        organizationIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        customerId:
+          type: string
+          format: uuid
+        dateFrom:
+          type: string
+          format: date-time
+        dateTo:
+          type: string
+          format: date-time
+        slaBreachRisk:
+          type: boolean
+        overdue:
+          type: boolean
+        unassigned:
+          type: boolean
+        search:
+          type: string
+
+    SearchResponse:
+      type: object
+      required: [results, facets, pagination]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Case'
+        facets:
+          type: object
+          properties:
+            statuses:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  count:
+                    type: integer
+            priorities:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  count:
+                    type: integer
+            categories:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  count:
+                    type: integer
+            queues:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  count:
+                    type: integer
+        pagination:
+          $ref: '#/components/schemas/PaginatedResponse/properties/pagination'
+
+    # ===== SLA =====
+    SLARule:
+      type: object
+      required: [id, name, isActive]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        categoryId:
+          type: string
+          format: uuid
+          nullable: true
+        priorityId:
+          type: string
+          format: uuid
+          nullable: true
+        queueId:
+          type: string
+          format: uuid
+          nullable: true
+        responseTargetMinutes:
+          type: integer
+          nullable: true
+        resolutionTargetMinutes:
+          type: integer
+          nullable: true
+        businessHoursId:
+          type: string
+          format: uuid
+          nullable: true
+        isActive:
+          type: boolean
+
+    SLARuleCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        priorityId:
+          type: string
+          format: uuid
+        queueId:
+          type: string
+          format: uuid
+        responseTargetMinutes:
+          type: integer
+          minimum: 1
+        resolutionTargetMinutes:
+          type: integer
+          minimum: 1
+        businessHoursId:
+          type: string
+          format: uuid
+
+    SLATargets:
+      type: object
+      required: [responseTargetAt, resolutionTargetAt, isPaused]
+      properties:
+        responseTargetAt:
+          type: string
+          format: date-time
+          nullable: true
+        resolutionTargetAt:
+          type: string
+          format: date-time
+          nullable: true
+        isPaused:
+          type: boolean
+        pausedAt:
+          type: string
+          format: date-time
+          nullable: true
+        totalPausedDurationSeconds:
+          type: integer
+
+    # ===== Reports =====
+    AgentDashboard:
+      type: object
+      required: [assignedCases, openCases, needsAttention, myQueueCounts]
+      properties:
+        assignedCases:
+          type: integer
+        openCases:
+          type: integer
+        needsAttention:
+          type: integer
+        myQueueCounts:
+          type: array
+          items:
+            type: object
+            properties:
+              queueId:
+                type: string
+              queueName:
+                type: string
+              count:
+                type: integer
+
+    SupervisorDashboard:
+      type: object
+      required: [totalVolume, workloadByAgent, queueBacklog, aging, overdueCases]
+      properties:
+        totalVolume:
+          type: integer
+        workloadByAgent:
+          type: array
+          items:
+            type: object
+            properties:
+              agentId:
+                type: string
+              agentName:
+                type: string
+              assignedCount:
+                type: integer
+              openCount:
+                type: integer
+        queueBacklog:
+          type: array
+          items:
+            type: object
+            properties:
+              queueId:
+                type: string
+              queueName:
+                type: string
+              count:
+                type: integer
+              avgAgeHours:
+                type: number
+        aging:
+          type: array
+          items:
+            type: object
+            properties:
+              bucket:
+                type: string
+              count:
+                type: integer
+        overdueCases:
+          type: integer
+
+    VolumeReport:
+      type: object
+      required: [byStatus, byPriority, byCategory, byTimePeriod]
+      properties:
+        byStatus:
+          type: array
+          items:
+            type: object
+            properties:
+              statusId:
+                type: string
+              statusName:
+                type: string
+              count:
+                type: integer
+        byPriority:
+          type: array
+          items:
+            type: object
+            properties:
+              priorityId:
+                type: string
+              priorityName:
+                type: string
+              count:
+                type: integer
+        byCategory:
+          type: array
+          items:
+            type: object
+            properties:
+              categoryId:
+                type: string
+              categoryName:
+                type: string
+              count:
+                type: integer
+        byTimePeriod:
+          type: array
+          items:
+            type: object
+            properties:
+              period:
+                type: string
+              count:
+                type: integer
+
+    MetricsReport:
+      type: object
+      required: [avgResponseTimeMinutes, avgResolutionTimeMinutes, slaComplianceRate]
+      properties:
+        avgResponseTimeMinutes:
+          type: number
+        avgResolutionTimeMinutes:
+          type: number
+        slaComplianceRate:
+          type: number
+
+    # ===== Admin Config =====
+    AdminConfig:
+      type: object
+      required: [statuses, priorities, categories, queues, slaRules, macros, permissions]
+      properties:
+        statuses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Status'
+        priorities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Priority'
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        queues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Queue'
+        slaRules:
+          type: array
+          items:
+            $ref: '#/components/schemas/SLARule'
+        macros:
+          type: array
+          items:
+            $ref: '#/components/schemas/Macro'
+        permissions:
+          type: object
+
+    # ===== Audit =====
+    AuditLogEntry:
+      type: object
+      required: [id, eventType, actorId, entityType, entityId, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        actorId:
+          type: string
+          format: uuid
+        actor:
+          $ref: '#/components/schemas/User'
+        actorRole:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: string
+        before:
+          type: object
+          nullable: true
+        after:
+          type: object
+          nullable: true
+        metadata:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+
+    # ===== Webhooks =====
+    EmailWebhookPayload:
+      type: object
+      required: [messageId, fromEmail, toEmail, subject, textBody, htmlBody]
+      properties:
+        messageId:
+          type: string
+        threadId:
+          type: string
+        fromEmail:
+          type: string
+        toEmail:
+          type: string
+        cc:
+          type: array
+          items:
+            type: string
+        subject:
+          type: string
+        textBody:
+          type: string
+        htmlBody:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              contentType:
+                type: string
+              content:
+                type: string
+                format: base64
+
+    # ===== Real-time =====
+    SSEEvent:
+      type: object
+      required: [event, data, timestamp, correlationId]
+      properties:
+        event:
+          type: string
+          enum: [case.created, case.updated, case.deleted, case.status_changed, case.assigned, queue.changed, collision.warning, collision.released, notification.new, sla.breach_warning, sla.breach]
+        data:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+        correlationId:
+          type: string
+
+    CollisionWarning:
+      type: object
+      required: [caseId, draftingUserId, draftingUserName, lockExpiresAt]
+      properties:
+        caseId:
+          type: string
+          format: uuid
+        draftingUserId:
+          type: string
+          format: uuid
+        draftingUserName:
+          type: string
+        lockExpiresAt:
+          type: string
+          format: date-time
+
+paths:
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Logout (revoke refresh token)
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Logged out
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users:
+    get:
+      tags: [Users]
+      summary: List users (admin)
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [customer, agent, supervisor, admin]
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Paginated user list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/PaginatedResponse/properties/pagination'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags: [Users]
+      summary: Create user (admin)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, fullName, roles]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                fullName:
+                  type: string
+                roles:
+                  type: array
+                  items:
+                    type: string
+                    enum: [customer, agent, supervisor, admin]
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      tags: [Users]
+      summary: Update user (admin)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                roles:
+                  type: array
+                  items:
+                    type: string
+                    enum: [customer, agent, supervisor, admin]
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Not found
+
+    delete:
+      tags: [Users]
+      summary: Deactivate user (admin)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deactivated
+        '404':
+          description: Not found
+
+  /customers:
+    get:
+      tags: [Customers]
+      summary: List customers
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: organizationId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Paginated customer list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Customer'
+                  pagination:
+                    $ref: '#/components/schemas/PaginatedResponse/properties/pagination'
+
+    post:
+      tags: [Customers]
+      summary: Create customer
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreateRequest'
+      responses:
+        '201':
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Validation error
+
+  /customers/{id}:
+    get:
+      tags: [Customers]
+      summary: Get customer with case history
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Customer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Not found
+
+    patch:
+      tags: [Customers]
+      summary: Update customer
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUpdateRequest'
+      responses:
+        '200':
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+
+  /cases:
+    get:
+      tags: [Cases]
+      summary: List cases with filtering
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+        - name: statusIds
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: priorityIds
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: categoryIds
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: queueIds
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: assignedAgentIds
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: customerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: slaBreachRisk
+          in: query
+          schema:
+            type: boolean
+        - name: overdue
+          in: query
+          schema:
+            type: boolean
+        - name: unassigned
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Paginated case list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Case'
+                  pagination:
+                    $ref: '#/components/schemas/PaginatedResponse/properties/pagination'
+
+    post:
+      tags: [Cases]
+      summary: Create case
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseCreateRequest'
+      responses:
+        '201':
+          description: Case created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+        '400':
+          description: Validation error
+
+  /cases/bulk:
+    post:
+      tags: [Cases]
+      summary: Bulk action on cases
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseBulkActionRequest'
+      responses:
+        '200':
+          description: Bulk action completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  successCount:
+                    type: integer
+                  failedCount:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: object
+
+  /cases/{id}:
+    get:
+      tags: [Cases]
+      summary: Get case details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Case details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+        '404':
+          description: Not found
+
+    patch:
+      tags: [Cases]
+      summary: Update case
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseUpdateRequest'
+      responses:
+        '200':
+          description: Case updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+        '400':
+          description: Validation error
+        '404':
+          description: Not found
+
+  /cases/{id}/communications:
+    get:
+      tags: [Communications]
+      summary: Get case communications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Paginated communications
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Communication'
+                  pagination:
+                    $ref: '#/components/schemas/PaginatedResponse/properties/pagination'
+
+    post:
+      tags: [Communications]
+      summary: Add communication (reply or internal note)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunicationCreateRequest'
+      responses:
+        '201':
+          description: Communication added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Communication'
+        '400':
+          description: Validation error
+        '409':
+          description: Collision detected (another user drafting)
+
+  /cases/{id}/collision:
+    post:
+      tags: [Cases]
+      summary: Acquire drafting lock
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type:
+                  type: string
+                  enum: [reply, note]
+      responses:
+        '200':
+          description: Lock acquired
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lockExpiresAt:
+                    type: string
+                    format: date-time
+        '409':
+          description: Lock held by another user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollisionWarning'
+
+    delete:
+      tags: [Cases]
+      summary: Release drafting lock
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Lock released
+
+  /cases/{id}/attachments:
+    get:
+      tags: [Attachments]
+      summary: List case attachments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Attachment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attachment'
+
+    post:
+      tags: [Attachments]
+      summary: Initiate attachment upload
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [filename, contentType, sizeBytes]
+              properties:
+                filename:
+                  type: string
+                contentType:
+                  type: string
+                sizeBytes:
+                  type: integer
+                  maximum: 52428800
+      responses:
+        '201':
+          description: Upload URL generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachmentUploadResponse'
+        '400':
+          description: Validation error
+
+  /attachments/{id}:
+    get:
+      tags: [Attachments]
+      summary: Get attachment download URL
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Signed download URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  downloadUrl:
+                    type: string
+                    format: uri
+                  expiresAt:
+                    type: string
+                    format: date-time
+
+    delete:
+      tags: [Attachments]
+      summary: Delete attachment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Attachment deleted
+
+  /queues:
+    get:
+      tags: [Queues]
+      summary: List queues with case counts
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Queue list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Queue'
+
+    post:
+      tags: [Queues]
+      summary: Create queue (admin)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, slug]
+              properties:
+                name:
+                  type: string
+                slug:
+                  type: string
+                description:
+                  type: string
+                slaRuleId:
+                  type: string
+                  format: uuid
+                autoAssign:
+                  type: boolean
+      responses:
+        '201':
+          description: Queue created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Queue'
+
+  /queues/{id}:
+    get:
+      tags: [Queues]
+      summary: Get queue with cases
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Queue with cases
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  queue:
+                    $ref: '#/components/schemas/Queue'
+                  cases:
+                    type: object
+                    required: [data, pagination]
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Case'
+                      pagination:
+                        $ref: '#/components/schemas/PaginatedResponse/properties/pagination'
+
+    patch:
+      tags: [Queues]
+      summary: Update queue (admin)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                slaRuleId:
+                  type: string
+                  format: uuid
+                autoAssign:
+                  type: boolean
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: Queue updated
+        '400':
+          description: Cannot deactivate - active cases exist
+
+  /search:
+    post:
+      tags: [Search]
+      summary: Full-text search cases
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseFilterRequest'
+      responses:
+        '200':
+          description: Search results with facets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+
+  /sla/rules:
+    get:
+      tags: [SLA]
+      summary: List SLA rules
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: SLA rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SLARule'
+
+    post:
+      tags: [SLA]
+      summary: Create SLA rule (admin)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SLARuleCreateRequest'
+      responses:
+        '201':
+          description: SLA rule created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SLARule'
+
+  /sla/rules/{id}:
+    patch:
+      tags: [SLA]
+      summary: Update SLA rule (admin)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SLARuleCreateRequest'
+      responses:
+        '200':
+          description: SLA rule updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SLARule'
+
+  /cases/{id}/sla:
+    get:
+      tags: [SLA]
+      summary: Get SLA targets for case
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: SLA targets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SLATargets'
+
+  /reports/agent-dashboard:
+    get:
+      tags: [Reports]
+      summary: Agent dashboard data
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Agent dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentDashboard'
+
+  /reports/supervisor-dashboard:
+    get:
+      tags: [Reports]
+      summary: Supervisor dashboard data
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Supervisor dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupervisorDashboard'
+
+  /reports/volume:
+    get:
+      tags: [Reports]
+      summary: Case volume report
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: groupBy
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month]
+            default: day
+      responses:
+        '200':
+          description: Volume report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VolumeReport'
+
+  /reports/metrics:
+    get:
+      tags: [Reports]
+      summary: Performance metrics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Metrics report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsReport'
+
+  /admin/config:
+    get:
+      tags: [Admin]
+      summary: Get all admin configuration
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Full admin config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminConfig'
+
+  /admin/statuses:
+    get:
+      tags: [Admin]
+      summary: List statuses
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Status list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+
+    post:
+      tags: [Admin]
+      summary: Create status (admin)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, label, color]
+              properties:
+                name:
+                  type: string
+                label:
+                  type: string
+                description:
+                  type: string
+                color:
+                  type: string
+                isClosed:
+                  type: boolean
+                pausesSla:
+                  type: boolean
+                requiresRootCause:
+                  type: boolean
+                sortOrder:
+                  type: integer
+      responses:
+        '201':
+          description: Status created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+
+  /admin/statuses/{id}:
+    patch:
+      tags: [Admin]
+      summary: Update status (admin)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                description:
+                  type: string
+                color:
+                  type: string
+                isActive:
+                  type: boolean
+                sortOrder:
+                  type: integer
+      responses:
+        '200':
+          description: Status updated
+        '400':
+          description: Cannot deactivate - referenced by active cases
+
+  /admin/priorities:
+    get:
+      tags: [Admin]
+      summary: List priorities
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Priority list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Priority'
+
+  /admin/categories:
+    get:
+      tags: [Admin]
+      summary: List categories
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+
+  /admin/macros:
+    get:
+      tags: [Admin]
+      summary: List macros
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Macro list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Macro'
+
+    post:
+      tags: [Admin]
+      summary: Create macro (admin)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MacroCreateRequest'
+      responses:
+        '201':
+          description: Macro created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Macro'
+
+  /audit:
+    get:
+      tags: [Audit]
+      summary: Query audit log
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: eventType
+          in: query
+          schema:
+            type: string
+        - name: entityType
+          in: query
+          schema:
+            type: string
+        - name: entityId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: actorId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Paginated audit log
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditLogEntry'
+                  pagination:
+                    $ref: '#/components/schemas/PaginatedResponse/properties/pagination'
+
+  /webhooks/email:
+    post:
+      tags: [Webhooks]
+      summary: Email provider webhook (Postmark)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailWebhookPayload'
+      responses:
+        '200':
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [processed, created_case, attached_to_case, duplicate]
+
+  /realtime/stream:
+    get:
+      tags: [Real-time]
+      summary: Server-Sent Events stream
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: channels
+          in: query
+          description: Comma-separated channel names (cases, queues, notifications)
+          schema:
+            type: string
+            default: "cases,queues,notifications"
+      responses:
+        '200':
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/SSEEvent'
+        '401':
+          description: Unauthorized
+
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok, degraded, down]
+                  timestamp:
+                    type: string
+                    format: date-time
+                  checks:
+                    type: object
+                    properties:
+                      database:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                      redis:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                      storage:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+
+parameters:
+  PageParam:
+    name: page
+    in: query
+    schema:
+      type: integer
+      minimum: 1
+      default: 1
+  LimitParam:
+    name: limit
+    in: query
+    schema:
+      type: integer
+      minimum: 1
+      maximum: 100
+      default: 20
+  SortParam:
+    name: sort
+    in: query
+    schema:
+      type: string
+  SearchParam:
+    name: search
+    in: query
+    schema:
+      type: string
