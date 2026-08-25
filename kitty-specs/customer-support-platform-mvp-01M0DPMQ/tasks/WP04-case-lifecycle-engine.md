@@ -20,6 +20,7 @@ requirement_refs:
 - FR-100
 - FR-101
 - FR-102
+- FR-103
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
