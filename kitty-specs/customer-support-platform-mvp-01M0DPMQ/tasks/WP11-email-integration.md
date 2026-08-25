@@ -11,7 +11,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp11-email-integration
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T047
 - T048
@@ -28,9 +28,8 @@ create_intent: []
 execution_mode: code_change
 model: claude-sonnet-4-6
 owned_files:
-- backend/src/email/
-- backend/src/webhooks/email/
-- backend/prisma/schema.prisma
+- backend/src/email/**
+- backend/src/webhooks/email/**
 role: implementer
 tags: []
 ---

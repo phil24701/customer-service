@@ -14,7 +14,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp17-supervisor-admin-ui
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T064
 - T065
@@ -26,7 +26,16 @@ history:
   actor: spec-kitty-tasks
 agent_profile: implementer-ivan
 authoritative_surface: frontend/src/pages/
-create_intent: []
+create_intent:
+- frontend/src/pages/SupervisorDashboard.tsx
+- frontend/src/pages/AdminSettings.tsx
+- frontend/src/pages/AdminStatuses.tsx
+- frontend/src/pages/AdminPriorities.tsx
+- frontend/src/pages/AdminCategories.tsx
+- frontend/src/pages/AdminQueues.tsx
+- frontend/src/pages/AdminSlaRules.tsx
+- frontend/src/pages/AdminMacros.tsx
+- frontend/src/pages/AdminAuditLog.tsx
 execution_mode: code_change
 model: claude-sonnet-4-6
 owned_files:

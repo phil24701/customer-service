@@ -21,7 +21,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp06-agent-ops-bulk
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T028
 - T029
@@ -35,13 +35,15 @@ history:
   actor: spec-kitty-tasks
 agent_profile: implementer-ivan
 authoritative_surface: backend/src/cases/services/case-operations.service.ts
-create_intent: []
+create_intent:
+- backend/src/cases/services/case-operations.service.ts
+- backend/src/cases/controllers/cases.controller.ts
 execution_mode: code_change
 model: claude-sonnet-4-6
 owned_files:
 - backend/src/cases/services/case-operations.service.ts
 - backend/src/cases/controllers/cases.controller.ts
-- backend/src/escalation/
+- backend/src/escalation/**
 role: implementer
 tags: []
 ---

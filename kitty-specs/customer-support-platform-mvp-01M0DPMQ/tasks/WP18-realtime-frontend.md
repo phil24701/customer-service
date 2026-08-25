@@ -13,7 +13,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp18-realtime-frontend
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T067
 - T068
@@ -24,7 +24,11 @@ history:
   actor: spec-kitty-tasks
 agent_profile: implementer-ivan
 authoritative_surface: frontend/src/hooks/
-create_intent: []
+create_intent:
+- frontend/src/hooks/useRealtime.ts
+- frontend/src/hooks/useCaseDraft.ts
+- frontend/src/contexts/RealtimeContext.tsx
+- frontend/src/services/sse.client.ts
 execution_mode: code_change
 model: claude-sonnet-4-6
 owned_files:

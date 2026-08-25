@@ -15,7 +15,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp03-user-customer-management
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T012
 - T013
@@ -33,10 +33,9 @@ create_intent: []
 execution_mode: code_change
 model: claude-sonnet-4-6
 owned_files:
-- backend/src/users/
-- backend/src/customers/
-- backend/src/organizations/
-- backend/prisma/schema.prisma
+- backend/src/users/**
+- backend/src/customers/**
+- backend/src/organizations/**
 role: implementer
 tags: []
 ---

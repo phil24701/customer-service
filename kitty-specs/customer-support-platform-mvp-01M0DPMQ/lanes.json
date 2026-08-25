@@ -1,0 +1,362 @@
+{
+  "version": 1,
+  "mission_slug": "customer-support-platform-mvp-01M0DPMQ",
+  "mission_id": "01M0DPMQRGYVXD960W4S34P2NH",
+  "mission_branch": "kitty/mission-customer-support-platform-mvp-01M0DPMQ",
+  "target_branch": "epic1",
+  "lanes": [
+    {
+      "lane_id": "lane-b",
+      "wp_ids": [
+        "WP02",
+        "WP03"
+      ],
+      "write_scope": [
+        "backend/src/auth/**",
+        "backend/src/common/decorators/**",
+        "backend/src/common/guards/**",
+        "backend/src/common/strategies/**",
+        "backend/src/customers/**",
+        "backend/src/organizations/**",
+        "backend/src/users/**"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "legacy-cleanup",
+        "tests"
+      ],
+      "depends_on_lanes": [
+        "lane-a"
+      ],
+      "parallel_group": 1
+    },
+    {
+      "lane_id": "lane-d",
+      "wp_ids": [
+        "WP05"
+      ],
+      "write_scope": [
+        "backend/src/attachments/**",
+        "backend/src/collision/**",
+        "backend/src/communications/**",
+        "backend/src/macros/**"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "app-shell",
+        "artifact-rendering",
+        "tests"
+      ],
+      "depends_on_lanes": [
+        "lane-c"
+      ],
+      "parallel_group": 1
+    },
+    {
+      "lane_id": "lane-c",
+      "wp_ids": [
+        "WP04",
+        "WP06"
+      ],
+      "write_scope": [
+        "backend/src/cases/**",
+        "backend/src/cases/controllers/cases.controller.ts",
+        "backend/src/cases/services/case-operations.service.ts",
+        "backend/src/escalation/**",
+        "backend/src/routing/**"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "dashboard",
+        "legacy-cleanup",
+        "tests"
+      ],
+      "depends_on_lanes": [
+        "lane-b",
+        "lane-d"
+      ],
+      "parallel_group": 2
+    },
+    {
+      "lane_id": "lane-e",
+      "wp_ids": [
+        "WP07"
+      ],
+      "write_scope": [
+        "backend/src/queues/**",
+        "backend/src/search/**"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "tests"
+      ],
+      "depends_on_lanes": [
+        "lane-c"
+      ],
+      "parallel_group": 3
+    },
+    {
+      "lane_id": "lane-g",
+      "wp_ids": [
+        "WP10"
+      ],
+      "write_scope": [
+        "backend/src/admin/**"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "tests"
+      ],
+      "depends_on_lanes": [
+        "lane-c"
+      ],
+      "parallel_group": 3
+    },
+    {
+      "lane_id": "lane-h",
+      "wp_ids": [
+        "WP11"
+      ],
+      "write_scope": [
+        "backend/src/email/**",
+        "backend/src/webhooks/email/**"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "artifact-rendering",
+        "tests",
+        "tracker-integration"
+      ],
+      "depends_on_lanes": [
+        "lane-c",
+        "lane-d"
+      ],
+      "parallel_group": 3
+    },
+    {
+      "lane_id": "lane-i",
+      "wp_ids": [
+        "WP13"
+      ],
+      "write_scope": [
+        "backend/src/realtime/**",
+        "backend/src/sse/**"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "legacy-cleanup",
+        "tests"
+      ],
+      "depends_on_lanes": [
+        "lane-a",
+        "lane-c",
+        "lane-d"
+      ],
+      "parallel_group": 3
+    },
+    {
+      "lane_id": "lane-f",
+      "wp_ids": [
+        "WP09"
+      ],
+      "write_scope": [
+        "backend/src/dashboard/**",
+        "backend/src/reports/**"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "dashboard",
+        "tests"
+      ],
+      "depends_on_lanes": [
+        "lane-a",
+        "lane-c",
+        "lane-e"
+      ],
+      "parallel_group": 4
+    },
+    {
+      "lane_id": "lane-j",
+      "wp_ids": [
+        "WP14",
+        "WP15",
+        "WP16",
+        "WP17",
+        "WP18"
+      ],
+      "write_scope": [
+        "frontend/.eslintrc.js",
+        "frontend/.prettierrc",
+        "frontend/package.json",
+        "frontend/src/**",
+        "frontend/src/components/CaseEditor.tsx",
+        "frontend/src/contexts/AuthContext.tsx",
+        "frontend/src/contexts/RealtimeContext.tsx",
+        "frontend/src/hooks/useAuth.ts",
+        "frontend/src/hooks/useCaseDraft.ts",
+        "frontend/src/hooks/useRealtime.ts",
+        "frontend/src/pages/AdminAuditLog.tsx",
+        "frontend/src/pages/AdminCategories.tsx",
+        "frontend/src/pages/AdminMacros.tsx",
+        "frontend/src/pages/AdminPriorities.tsx",
+        "frontend/src/pages/AdminQueues.tsx",
+        "frontend/src/pages/AdminSettings.tsx",
+        "frontend/src/pages/AdminSlaRules.tsx",
+        "frontend/src/pages/AdminStatuses.tsx",
+        "frontend/src/pages/AgentCaseDetail.tsx",
+        "frontend/src/pages/AgentCaseList.tsx",
+        "frontend/src/pages/AgentDashboard.tsx",
+        "frontend/src/pages/CreateCasePage.tsx",
+        "frontend/src/pages/CustomerCaseDetail.tsx",
+        "frontend/src/pages/CustomerCaseList.tsx",
+        "frontend/src/pages/CustomerDashboard.tsx",
+        "frontend/src/pages/LoginPage.tsx",
+        "frontend/src/pages/SupervisorDashboard.tsx",
+        "frontend/src/services/auth.api.ts",
+        "frontend/src/services/cases.api.ts",
+        "frontend/src/services/macros.api.ts",
+        "frontend/src/services/sse.client.ts",
+        "frontend/tsconfig.json",
+        "frontend/vite.config.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "app-shell",
+        "artifact-rendering",
+        "dashboard",
+        "tests",
+        "tracker-integration",
+        "workspace"
+      ],
+      "depends_on_lanes": [
+        "lane-b",
+        "lane-c",
+        "lane-d",
+        "lane-e",
+        "lane-f",
+        "lane-g",
+        "lane-i"
+      ],
+      "parallel_group": 5
+    },
+    {
+      "lane_id": "lane-a",
+      "wp_ids": [
+        "WP01",
+        "WP12",
+        "WP08",
+        "WP19"
+      ],
+      "write_scope": [
+        ".github/workflows/**",
+        "backend/.eslintrc.js",
+        "backend/.prettierrc",
+        "backend/Dockerfile",
+        "backend/nest-cli.json",
+        "backend/package.json",
+        "backend/prisma/schema.prisma",
+        "backend/src/app.module.ts",
+        "backend/src/config/**",
+        "backend/src/config/queue.config.ts",
+        "backend/src/database/**",
+        "backend/src/jobs/**",
+        "backend/src/jobs/sla-monitor.job.ts",
+        "backend/src/main.ts",
+        "backend/src/observability/**",
+        "backend/src/services/queue.service.ts",
+        "backend/src/sla/**",
+        "backend/tsconfig.json",
+        "docker-compose.prod.yml",
+        "docker-compose.yml",
+        "frontend/Dockerfile",
+        "frontend/tests/e2e/**",
+        "k8s/**"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "dashboard",
+        "legacy-cleanup",
+        "tests",
+        "tracker-integration"
+      ],
+      "depends_on_lanes": [
+        "lane-b",
+        "lane-c",
+        "lane-d",
+        "lane-e",
+        "lane-f",
+        "lane-g",
+        "lane-h",
+        "lane-i",
+        "lane-j"
+      ],
+      "parallel_group": 6
+    }
+  ],
+  "computed_at": "2026-08-25T20:21:16.182102+00:00",
+  "computed_from": "dependency_graph+ownership",
+  "planning_artifact_wps": [],
+  "collapse_report": {
+    "events": [
+      {
+        "wp_a": "WP01",
+        "wp_b": "WP12",
+        "rule": "write_scope_overlap",
+        "evidence": "overlapping globs: 'backend/src/config/**' vs 'backend/src/config/queue.config.ts'; WP12 depends on WP01"
+      },
+      {
+        "wp_a": "WP01",
+        "wp_b": "WP19",
+        "rule": "write_scope_overlap",
+        "evidence": "overlapping globs: 'docker-compose.prod.yml' vs 'docker-compose.prod.yml'; WP19 depends on WP01"
+      },
+      {
+        "wp_a": "WP02",
+        "wp_b": "WP03",
+        "rule": "write_scope_overlap",
+        "evidence": "overlapping globs: 'backend/src/users/**' vs 'backend/src/users/**'; WP03 depends on WP02"
+      },
+      {
+        "wp_a": "WP04",
+        "wp_b": "WP06",
+        "rule": "write_scope_overlap",
+        "evidence": "overlapping globs: 'backend/src/cases/**' vs 'backend/src/cases/services/case-operations.service.ts', 'backend/src/cases/**' vs 'backend/src/cases/controllers/cases.controller.ts'; WP06 depends on WP04"
+      },
+      {
+        "wp_a": "WP08",
+        "wp_b": "WP12",
+        "rule": "write_scope_overlap",
+        "evidence": "overlapping globs: 'backend/src/jobs/sla-monitor.job.ts' vs 'backend/src/jobs/**'; WP08 depends on WP12"
+      },
+      {
+        "wp_a": "WP14",
+        "wp_b": "WP15",
+        "rule": "write_scope_overlap",
+        "evidence": "overlapping globs: 'frontend/src/**' vs 'frontend/src/pages/LoginPage.tsx', 'frontend/src/**' vs 'frontend/src/pages/CustomerDashboard.tsx', 'frontend/src/**' vs 'frontend/src/pages/CustomerCaseList.tsx', 'frontend/src/**' vs 'frontend/src/pages/CustomerCaseDetail.tsx', 'frontend/src/**' vs 'frontend/src/pages/CreateCasePage.tsx', 'frontend/src/**' vs 'frontend/src/contexts/AuthContext.tsx', 'frontend/src/**' vs 'frontend/src/hooks/useAuth.ts', 'frontend/src/**' vs 'frontend/src/services/auth.api.ts', 'frontend/src/**' vs 'frontend/src/services/cases.api.ts'; WP15 depends on WP14"
+      },
+      {
+        "wp_a": "WP14",
+        "wp_b": "WP16",
+        "rule": "write_scope_overlap",
+        "evidence": "overlapping globs: 'frontend/src/**' vs 'frontend/src/pages/AgentDashboard.tsx', 'frontend/src/**' vs 'frontend/src/pages/AgentCaseList.tsx', 'frontend/src/**' vs 'frontend/src/pages/AgentCaseDetail.tsx', 'frontend/src/**' vs 'frontend/src/components/CaseEditor.tsx', 'frontend/src/**' vs 'frontend/src/hooks/useCaseDraft.ts', 'frontend/src/**' vs 'frontend/src/services/macros.api.ts'; WP16 depends on WP14"
+      },
+      {
+        "wp_a": "WP14",
+        "wp_b": "WP17",
+        "rule": "write_scope_overlap",
+        "evidence": "overlapping globs: 'frontend/src/**' vs 'frontend/src/pages/SupervisorDashboard.tsx', 'frontend/src/**' vs 'frontend/src/pages/AdminSettings.tsx', 'frontend/src/**' vs 'frontend/src/pages/AdminStatuses.tsx', 'frontend/src/**' vs 'frontend/src/pages/AdminPriorities.tsx', 'frontend/src/**' vs 'frontend/src/pages/AdminCategories.tsx', 'frontend/src/**' vs 'frontend/src/pages/AdminQueues.tsx', 'frontend/src/**' vs 'frontend/src/pages/AdminSlaRules.tsx', 'frontend/src/**' vs 'frontend/src/pages/AdminMacros.tsx', 'frontend/src/**' vs 'frontend/src/pages/AdminAuditLog.tsx'; WP17 depends on WP14"
+      },
+      {
+        "wp_a": "WP14",
+        "wp_b": "WP18",
+        "rule": "write_scope_overlap",
+        "evidence": "overlapping globs: 'frontend/src/**' vs 'frontend/src/hooks/useRealtime.ts', 'frontend/src/**' vs 'frontend/src/hooks/useCaseDraft.ts', 'frontend/src/**' vs 'frontend/src/contexts/RealtimeContext.tsx', 'frontend/src/**' vs 'frontend/src/services/sse.client.ts'"
+      }
+    ],
+    "total_merges": 9,
+    "independent_wps_collapsed": 0,
+    "by_rule": {
+      "write_scope_overlap": 9
+    }
+  }
+}

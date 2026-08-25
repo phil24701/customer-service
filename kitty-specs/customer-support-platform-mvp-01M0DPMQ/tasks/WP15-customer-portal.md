@@ -13,7 +13,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp15-customer-portal
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T060
 - T061
@@ -24,7 +24,16 @@ history:
   actor: spec-kitty-tasks
 agent_profile: implementer-ivan
 authoritative_surface: frontend/src/pages/
-create_intent: []
+create_intent:
+- frontend/src/pages/LoginPage.tsx
+- frontend/src/pages/CustomerDashboard.tsx
+- frontend/src/pages/CustomerCaseList.tsx
+- frontend/src/pages/CustomerCaseDetail.tsx
+- frontend/src/pages/CreateCasePage.tsx
+- frontend/src/contexts/AuthContext.tsx
+- frontend/src/hooks/useAuth.ts
+- frontend/src/services/auth.api.ts
+- frontend/src/services/cases.api.ts
 execution_mode: code_change
 model: claude-sonnet-4-6
 owned_files:

@@ -18,7 +18,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp05-comms-macros-collision
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T023
 - T024
@@ -36,11 +36,10 @@ create_intent: []
 execution_mode: code_change
 model: claude-sonnet-4-6
 owned_files:
-- backend/src/communications/
-- backend/src/attachments/
-- backend/src/macros/
-- backend/src/collision/
-- backend/prisma/schema.prisma
+- backend/src/communications/**
+- backend/src/attachments/**
+- backend/src/macros/**
+- backend/src/collision/**
 role: implementer
 tags: []
 ---

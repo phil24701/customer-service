@@ -14,7 +14,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp10-admin-config
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T042
 - T043
@@ -32,8 +32,7 @@ create_intent: []
 execution_mode: code_change
 model: claude-sonnet-4-6
 owned_files:
-- backend/src/admin/
-- backend/prisma/schema.prisma
+- backend/src/admin/**
 role: implementer
 tags: []
 ---

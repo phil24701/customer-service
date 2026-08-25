@@ -28,7 +28,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp19-cicd-k8s-e2e
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T069
 - T070
@@ -41,16 +41,19 @@ history:
   actor: spec-kitty-tasks
 agent_profile: implementer-ivan
 authoritative_surface: .github/workflows/
-create_intent: []
-execution_mode: code_change
-model: claude-sonnet-4-6
-owned_files:
-- .github/workflows/
-- k8s/
+create_intent:
 - docker-compose.prod.yml
 - backend/Dockerfile
 - frontend/Dockerfile
-- frontend/tests/e2e/
+execution_mode: code_change
+model: claude-sonnet-4-6
+owned_files:
+- .github/workflows/**
+- k8s/**
+- docker-compose.prod.yml
+- backend/Dockerfile
+- frontend/Dockerfile
+- frontend/tests/e2e/**
 role: implementer
 tags: []
 ---

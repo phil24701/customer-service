@@ -14,7 +14,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp08-sla-management
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T036
 - T037
@@ -25,13 +25,13 @@ history:
   actor: spec-kitty-tasks
 agent_profile: implementer-ivan
 authoritative_surface: backend/src/sla/
-create_intent: []
+create_intent:
+- backend/src/jobs/sla-monitor.job.ts
 execution_mode: code_change
 model: claude-sonnet-4-6
 owned_files:
-- backend/src/sla/
+- backend/src/sla/**
 - backend/src/jobs/sla-monitor.job.ts
-- backend/prisma/schema.prisma
 role: implementer
 tags: []
 ---

@@ -27,7 +27,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp01-foundation
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T001
 - T002
@@ -41,7 +41,17 @@ history:
   actor: spec-kitty-tasks
 agent_profile: implementer-ivan
 authoritative_surface: backend/
-create_intent: []
+create_intent:
+- backend/package.json
+- backend/tsconfig.json
+- backend/nest-cli.json
+- backend/.eslintrc.js
+- backend/.prettierrc
+- backend/prisma/schema.prisma
+- backend/src/main.ts
+- backend/src/app.module.ts
+- docker-compose.yml
+- docker-compose.prod.yml
 execution_mode: code_change
 model: claude-sonnet-4-6
 owned_files:
@@ -53,9 +63,9 @@ owned_files:
 - backend/prisma/schema.prisma
 - backend/src/main.ts
 - backend/src/app.module.ts
-- backend/src/config/
-- backend/src/database/
-- backend/src/observability/
+- backend/src/config/**
+- backend/src/database/**
+- backend/src/observability/**
 - docker-compose.yml
 - docker-compose.prod.yml
 role: implementer

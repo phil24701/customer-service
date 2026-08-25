@@ -14,7 +14,7 @@ requirement_refs:
 tracker_refs: []
 planning_base_branch: epic1
 merge_target_branch: epic1
-branch_strategy: feature/wp02-auth-foundation
+branch_strategy: Planning artifacts for this mission were generated on epic1. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into epic1 unless the human explicitly redirects the landing branch.
 subtasks:
 - T006
 - T007
@@ -33,12 +33,11 @@ create_intent: []
 execution_mode: code_change
 model: claude-sonnet-4-6
 owned_files:
-- backend/src/auth/
-- backend/src/users/
-- backend/src/common/guards/
-- backend/src/common/decorators/
-- backend/src/common/strategies/
-- backend/prisma/schema.prisma
+- backend/src/auth/**
+- backend/src/users/**
+- backend/src/common/guards/**
+- backend/src/common/decorators/**
+- backend/src/common/strategies/**
 role: implementer
 tags: []
 ---
