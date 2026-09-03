@@ -31,28 +31,6 @@
       "parallel_group": 1
     },
     {
-      "lane_id": "lane-d",
-      "wp_ids": [
-        "WP05"
-      ],
-      "write_scope": [
-        "backend/src/attachments/**",
-        "backend/src/collision/**",
-        "backend/src/communications/**",
-        "backend/src/macros/**"
-      ],
-      "predicted_surfaces": [
-        "api",
-        "app-shell",
-        "artifact-rendering",
-        "tests"
-      ],
-      "depends_on_lanes": [
-        "lane-c"
-      ],
-      "parallel_group": 1
-    },
-    {
       "lane_id": "lane-c",
       "wp_ids": [
         "WP04",
@@ -76,6 +54,28 @@
         "lane-d"
       ],
       "parallel_group": 2
+    },
+    {
+      "lane_id": "lane-d",
+      "wp_ids": [
+        "WP05"
+      ],
+      "write_scope": [
+        "backend/src/attachments/**",
+        "backend/src/collision/**",
+        "backend/src/communications/**",
+        "backend/src/macros/**"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "app-shell",
+        "artifact-rendering",
+        "tests"
+      ],
+      "depends_on_lanes": [
+        "lane-c"
+      ],
+      "parallel_group": 3
     },
     {
       "lane_id": "lane-e",
@@ -113,6 +113,27 @@
       "parallel_group": 3
     },
     {
+      "lane_id": "lane-f",
+      "wp_ids": [
+        "WP09"
+      ],
+      "write_scope": [
+        "backend/src/dashboard/**",
+        "backend/src/reports/**"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "dashboard",
+        "tests"
+      ],
+      "depends_on_lanes": [
+        "lane-a",
+        "lane-c",
+        "lane-e"
+      ],
+      "parallel_group": 4
+    },
+    {
       "lane_id": "lane-h",
       "wp_ids": [
         "WP11"
@@ -131,7 +152,7 @@
         "lane-c",
         "lane-d"
       ],
-      "parallel_group": 3
+      "parallel_group": 4
     },
     {
       "lane_id": "lane-i",
@@ -151,27 +172,6 @@
         "lane-a",
         "lane-c",
         "lane-d"
-      ],
-      "parallel_group": 3
-    },
-    {
-      "lane_id": "lane-f",
-      "wp_ids": [
-        "WP09"
-      ],
-      "write_scope": [
-        "backend/src/dashboard/**",
-        "backend/src/reports/**"
-      ],
-      "predicted_surfaces": [
-        "api",
-        "dashboard",
-        "tests"
-      ],
-      "depends_on_lanes": [
-        "lane-a",
-        "lane-c",
-        "lane-e"
       ],
       "parallel_group": 4
     },
@@ -293,7 +293,7 @@
       "parallel_group": 6
     }
   ],
-  "computed_at": "2026-08-25T20:21:16.182102+00:00",
+  "computed_at": "2026-09-03T20:55:43.418621+00:00",
   "computed_from": "dependency_graph+ownership",
   "planning_artifact_wps": [],
   "collapse_report": {

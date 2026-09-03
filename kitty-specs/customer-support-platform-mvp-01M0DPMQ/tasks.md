@@ -15,12 +15,14 @@
 | T003 | Set up Docker Compose for local development (PostgreSQL, Redis, MinIO) | WP01 | [P] |
 | T004 | Configure Pino logging, Prometheus metrics, OpenTelemetry tracing | WP01 | [P] |
 | T005 | Create base NestJS modules: AppModule, ConfigModule, DatabaseModule | WP01 |  |
+| T005b | Create AuditLog Prisma model with immutable fields (created_at only, no updated_at), add DB trigger to prevent UPDATE/DELETE | WP01 |  |
 | T006 | Implement JWT authentication with access/refresh tokens (Argon2id) | WP02 |  |
 | T007 | Build login, refresh, logout, me endpoints per OpenAPI contracts | WP02 |  |
 | T008 | Create RBAC middleware for 4 roles: customer, agent, supervisor, admin | WP02 |  |
 | T009 | Implement session management with refresh token rotation/revocation | WP02 |  |
 | T010 | Add rate limiting on auth endpoints (5 attempts/15min per IP) | WP02 | [P] |
 | T011 | Write unit/integration tests for auth flow | WP02 | [P] |
+| T011a | Design audit immutability: API protection (no PATCH/DELETE endpoints for audit), RLS policies | WP02 |  |
 | T012 | Create User, UserRole, Session, Tenant Prisma models and migrations | WP03 |  |
 | T013 | Build user management CRUD endpoints (admin only) | WP03 |  |
 | T014 | Create Customer, Organization models and customer search/list endpoints | WP03 | [P] |
@@ -92,7 +94,7 @@
 **Goal**: Initialize NestJS backend with all foundational infrastructure  
 **Priority**: Critical (blocks all other backend work)  
 **Independent Test**: `npm run build && npm run test` passes; Docker Compose starts all services  
-**Subtasks**: T001, T002, T003, T004, T005  
+**Subtasks**: T001, T002, T003, T004, T005, T005b  
 **Dependencies**: None  
 **Parallel Opportunities**: T003, T004 can run in parallel after T001  
 **Risks**: Prisma schema must match data-model.md exactly; Docker Compose networking  
@@ -105,7 +107,7 @@
 **Goal**: Complete JWT + RBAC authentication system  
 **Priority**: Critical (Epic 1 deliverable)  
 **Independent Test**: Login → access protected endpoint → refresh token → logout works; RBAC denies unauthorized roles  
-**Subtasks**: T006, T007, T008, T009, T010, T011  
+**Subtasks**: T006, T007, T008, T009, T010, T011, T011a  
 **Dependencies**: WP01  
 **Parallel Opportunities**: T010, T011 can run in parallel after T006-T009  
 **Risks**: Token refresh race conditions; refresh token rotation edge cases; rate limiting integration  
