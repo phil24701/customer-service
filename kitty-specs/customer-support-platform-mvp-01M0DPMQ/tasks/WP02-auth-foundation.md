@@ -255,6 +255,33 @@ Implement complete JWT authentication with access/refresh tokens using Argon2id 
 
 ---
 
+### T011a: Design audit immutability: API protection and RLS policies
+
+**Purpose**: Design audit immutability enforcement per FR-103 — normal users cannot alter or delete audit history via API.
+
+**Steps**:
+1. Create `src/audit/audit.controller.ts` with read-only endpoints:
+   - `GET /audit` — paginated list with filters (event type, actor, entity, date range)
+   - `GET /audit/:id` — single audit entry with before/after
+   - **No** PATCH, PUT, DELETE endpoints
+2. Implement RLS (Row Level Security) policies on `audit_log` table:
+   - Policy: `SELECT` allowed for authenticated users with appropriate role
+   - Policy: `INSERT` allowed only for system/internal service role
+   - Policy: `UPDATE`/`DELETE` denied for all roles
+3. Add middleware to reject any write attempts to audit endpoints (403)
+4. Document API contract: audit is append-only, read-only for all users
+
+**Files**: `backend/src/audit/audit.controller.ts`, `backend/prisma/migrations/` (RLS policies)
+
+**Validation**:
+- [ ] GET /audit works with pagination/filters
+- [ ] GET /audit/:id returns before/after JSON
+- [ ] POST/PATCH/PUT/DELETE /audit returns 403
+- [ ] RLS policies prevent UPDATE/DELETE via direct DB access
+- [ ] Only system service can INSERT audit records
+
+---
+
 ## Branch Strategy
 
 - **Planning Branch**: `epic1`

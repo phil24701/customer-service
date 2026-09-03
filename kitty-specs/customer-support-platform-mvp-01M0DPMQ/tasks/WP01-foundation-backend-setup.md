@@ -272,6 +272,40 @@ Initialize the NestJS backend project with all foundational infrastructure: Type
 
 ---
 
+### T005b: Create AuditLog Prisma model with immutable fields and DB trigger
+
+**Purpose**: Implement audit immutability per FR-103 — normal users cannot alter or delete audit history.
+
+**Steps**:
+1. Add `AuditLog` model to `prisma/schema.prisma` with fields per data-model.md:
+   - `id`, `tenant_id`, `event_type`, `actor_id`, `actor_role`, `entity_type`, `entity_id`, `before`, `after`, `metadata`, `created_at`
+   - No `updated_at` field (immutable)
+2. Create Prisma migration: `npx prisma migrate dev --name audit-immutable`
+3. Add PostgreSQL trigger to prevent UPDATE/DELETE on `audit_log` table:
+   ```sql
+   CREATE OR REPLACE FUNCTION prevent_audit_modification() RETURNS trigger AS $$
+   BEGIN
+     RAISE EXCEPTION 'AuditLog is immutable - modifications not allowed';
+     RETURN NULL;
+   END;
+   $$ LANGUAGE plpgsql;
+   CREATE TRIGGER audit_immutable_trigger
+   BEFORE UPDATE OR DELETE ON "AuditLog"
+   FOR EACH ROW EXECUTE FUNCTION prevent_audit_modification();
+   ```
+4. Create `src/audit/audit.module.ts` with AuditService (read-only methods only)
+5. Ensure no API endpoints expose PATCH/DELETE for audit logs
+
+**Files**: `backend/prisma/schema.prisma`, `backend/prisma/migrations/`, `backend/src/audit/`
+
+**Validation**:
+- [ ] AuditLog model created with created_at only (no updated_at)
+- [ ] Migration applies with trigger
+- [ ] UPDATE/DELETE on audit_log raises exception
+- [ ] No PATCH/DELETE endpoints for audit in API
+
+---
+
 ## Branch Strategy
 
 - **Planning Branch**: `epic1` (current)

@@ -190,9 +190,16 @@
 |----------|------------|
 | **Mission Scope** | Full MVP implemented in single mission; phased implementation starting with Epic 1 (Authentication) |
 | **Auth Mechanism** | JWT tokens with refresh tokens (stateless, scalable, access + refresh token pattern) |
-| **Real-Time Mechanism** | Event-driven application model; transport (WebSockets/SSE/hybrid) deferred to technical design with ADR |
-| **Async Mechanism** | Background job mechanism (Bull/BullMQ, worker_threads, pg-boss, or alternative) deferred to technical design with ADR |
-| **Email Integration** | Webhook-based with provider-independent boundary; provider (SendGrid/Mailgun/Postmark) selected during technical design |
+| **Real-Time Mechanism** | Hybrid — SSE for server→client push (case/queue updates, notifications) + REST for client→server mutations (DM-01M0DXQSVZWTHJK68HTV5R2JX9) |
+| **Async Mechanism** | Bull/BullMQ (Redis-based) — mature queue with retries, scheduling, priority, metrics, horizontal scaling (DM-01M0DWBJ0X7MCF06FFX46S6REE) |
+| **Email Integration** | Webhook-based with provider-independent boundary; Postmark selected (free Developer plan for portfolio demo) (DM-01M0E1QJM5DRB1CV9NQCBN78B9) |
+| **Backend Framework** | NestJS (opinionated, modular, DI, good for enterprise) (DM-01M0DVBY0GRFRQ5M7QCJC7TJQJ) |
+| **ORM** | Prisma (type-safe, migrations, PostgreSQL full-text support) (DM-01M0DVGNRRX1SYKGNA56FHK8WB) |
+| **Search Implementation** | PostgreSQL full-text search (built-in, no extra infrastructure) — leverages existing PostgreSQL with tsvector/tsquery, GIN indexes (DM-01M0DZMVM8R813073P7TDAKTZQ) |
+| **CI/CD Platform** | GitHub Actions (native to GitHub, excellent TypeScript/Node.js support) (DM-01M0GHZGT8VSP2DAWEF0CVG5R1) |
+| **Observability Stack** | Pino + Prometheus + OpenTelemetry (DM-01M0GJ3PGAKRYQFERND4D7W3XZ) |
+| **Attachment Storage** | S3-compatible (MinIO for local development/demo, configurable endpoint for production S3-compatible provider) (DM-01M0GKP5W8ZYKH6GBV3J451F71) |
+| **Container Orchestration** | Both — Docker Compose for local development and Kubernetes manifests for live portfolio demonstration (DM-01M0GKZ76P86A3XBNQW39S4FKX) |
 
 ## 7. Deferred / Future Scope (Explicitly Not MVP)
 
